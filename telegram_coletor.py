@@ -12,7 +12,11 @@ nest_asyncio.apply() # Aplica um patch para permitir que loops asyncio aninhados
 
 
 # função que coleta as mensagens e salva em um arquivo json
-async def coletar(filename):
+async def coletar(filename, data_inicio, data_fim):
+    tz = pytz.timezone('GMT')
+    data_i = datetime.datetime.strptime(data_inicio, '%d/%m/%y').replace(tzinfo=tz)
+    data_f = datetime.datetime.strptime(data_fim, '%d/%m/%y').replace(tzinfo=tz)
+
     with open(filename + '.json', 'a+') as json_file:
         async with TelegramClient(name, api_id, api_hash) as client:
             for canal in canais:
