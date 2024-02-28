@@ -21,7 +21,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, data_inicio,
     with open(filename + '.json', 'a+') as json_file:
         async with TelegramClient(name, api_id, api_hash) as client:
             for canal in canais:
-                messages = await client.get_messages(canal, limit=1000, offset_date = data_f)
+                messages = await client.get_messages(canal, limit=3000, offset_date = data_f)
                 for message in messages:
 
                     # encerra se a mensagem for mais antiga que a data inicial estabelecida
