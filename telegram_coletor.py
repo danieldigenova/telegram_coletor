@@ -28,11 +28,16 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, data_inicio,
                     if(message.date < data_i):
                         break
 
-                    texto = str(message.message).lower()
-                    palavras = texto.split()
+                    # se a lista de termos for vazia então coleta todas mensagens
+                    if(termos == []):
+                      check = True
+                    # se a lista de termos ter algum termo, então realiza a verificação dos termos
+                    else:
+                      texto = str(message.message).lower()
+                      palavras = texto.split()
 
-                    # verifica se a mensagem possui algum dos termos presentes na lista fornecida
-                    check = any(termo in termos for termo in palavras)
+                      # verifica se a mensagem possui algum dos termos presentes na lista fornecida
+                      check = any(termo in termos for termo in palavras)
 
                     if(check):
 
@@ -50,8 +55,6 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, data_inicio,
                             group_type = 'broadcast'
                         elif(channel_full_info.chats[0].gigagroup):
                             group_type = 'gigagroup'
-
-                        #group_type
 
                         # verifica qual é o tipo de usuário
                         if(message.from_id != None):
