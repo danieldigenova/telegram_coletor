@@ -17,7 +17,7 @@ nest_asyncio.apply() # Aplica um patch para permitir que loops asyncio aninhados
 
 
 # função que coleta as mensagens e salva em um arquivo json
-async def coletar(name, api_id, api_hash, filename, termos, canais, data_inicio, data_fim):
+async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data_inicio, data_fim):
     tz = pytz.timezone('GMT')
 
     # verifica se a data de início está no formato correto
@@ -50,7 +50,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, data_inicio,
               for canal in tqdm(canais, desc ="Progresso da coleta: "):
                   # Verifica se o canal existe
                   try:
-                    messages = await client.get_messages(canal, limit=2000, offset_date = data_f)
+                    messages = await client.get_messages(canal, limit=limite, offset_date = data_f)
                   except ValueError:
                     print("Canal "+ canal + " não encontrado")
                     continue
