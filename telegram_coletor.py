@@ -30,6 +30,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
     # verifica se a data final está no formato correto
     try:
         data_f = datetime.datetime.strptime(data_fim, '%d/%m/%y').replace(tzinfo=tz)
+        data_f = data_f.replace(hour=23, minute=59)
     except ValueError:
         print("Erro: Formato de data final inválido, o formato deve seguir o padrão dd-mm-yy")
         return;
@@ -55,7 +56,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
                     print("Canal "+ canal + " não encontrado")
                     continue
 
-                  for message in tqdm(messages, leave=False, desc ="Coletando mensagens do canal " + canal):
+                  for message in messages:
 
                       # encerra se a mensagem for mais antiga que a data inicial estabelecida
                       if(message.date < data_i):
@@ -193,7 +194,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
                           json_file.write('\n')
 
                   json_file.flush()
-                  print("Todas as mensagens coletadas! Encerrando a coleta do canal " + canal + ".")
+                  print("Canal " + canal + " coletado.")
               client.disconnect()
     # avisa se já possui uma sessão ativa
     except sqlite3.OperationalError:
