@@ -27,7 +27,12 @@ nltk.download('wordnet')
 
 class DataAnalyzer:
     def __init__(self):
-        pass  
+        self.stop_words = set(stopwords.words('portuguese')) 
+        self.link_shorteners = [
+            "bit.ly", "goo.gl", "tinyurl.com", "t.co", "ow.ly",
+            "bitly.com", "rebrand.ly", "cutt.ly", "shorte.st",
+            "tiny.cc", "is.gd", "soo.gd", "s2r.co", "clicky.me", "budurl.com"
+        ]
 
     def analyze_time_series(self, df):
         # Converting 'date' column to datetime
@@ -135,4 +140,82 @@ class DataAnalyzer:
 
         # Return the resulting DataFrame
         return hashtags_count
+    
+    def preprocess_text(self, text):
+        """Preprocess text by cleaning and extracting bigrams."""
+        # Converte para string, remove URLs, hashtags e menções
+        text = str(text)
+        text = re.sub(r'http[s]?://\S+', '', text)
+        text = re.sub(r'#\S+', '', text)
+        text = re.sub(r'@\S+', '', text)
+        text = re.sub(r'[^\w\s]', '', text)
+        text = text.lower()
+
+        # Tokenizar e remover stopwords
+        tokens = word_tokenize(text)
+        tokens = [word for word in tokens if word not in self.stop_words and word.isalpha()]
+
+        # Extrair bigramas e retornar como string com bigramas separados por _
+        bigram_list = ['_'.join(bg) for bg in bigrams(tokens)]
+        return ' '.join(bigram_list)
+
+    def generate_bigrams(self, df, text_column):
+        """Generate bigrams for a DataFrame text column and create a word cloud."""
+        df['bigrams'] = df[text_column].apply(self.preprocess_text)
+        all_bigrams = ' '.join(df['bigrams'].tolist())
+
+        # Contar a frequência dos bigramas
+        bigram_frequency = Counter(all_bigrams.split())
+
+        # Gerar a nuvem de palavras com base nos bigramas
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(bigram_frequency)
+
+        # Mostrar a nuvem de palavras
+        plt.figure(figsize=(15, 10))
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        plt.show()
+        
+    def extract_links(self, text):
+        # Substitua este método pelo seu próprio método de extração de links.
+        # Este é um placeholder que encontra todas as ocorrências de URLs.
+        return re.findall(r'http[s]?://\S+', text)
+
+    def extract_domain_and_sub(self, url):
+        extracted = tldextract.extract(url)
+        domain = extracted.domain
+        subdomain = re.sub(r'www\d*\.', '', extracted.subdomain)
+
+        combined = f"{subdomain}.{domain}" if subdomain else domain
+        combined = combined.replace("www.", "")
+
+        if domain == "youtube" or (domain == "youtu" and extracted.suffix == "be"):
+            combined = "youtube"
+
+        full_domain = f"{combined}.{extracted.suffix}" if extracted.suffix else combined
+        if any(shortener in full_domain for shortener in self.link_shorteners):
+            combined = "encurtador de link"
+
+        return combined
+
+    def count_domain_frequency(self, df, text_column):
+        df['extracted_links'] = df[text_column].apply(self.extract_links)
+        links_series = df['extracted_links'].explode().dropna()
+        main_domains_series = links_series.apply(self.extract_domain_and_sub)
+        domain_counts = main_domains_series.value_counts().reset_index()
+        domain_counts.columns = ['Domain', 'Posts']
+        domain_counts = domain_counts[domain_counts['Domain'] != '']
+        return domain_counts
+    
+    def count_links_and_make_clickable(self, df, text_column):
+        """Count the frequency of each link and format links to be clickable in a DataFrame."""
+        links_series = df[text_column].apply(self.extract_links).explode()
+        links_count = links_series.value_counts().reset_index()
+        links_count.columns = ['Link', 'Posts']
+
+        # Apply formatting to make links clickable
+        links_styled = links_count.style.format({'Link': lambda x: f'<a href="{x}">{x}</a>'})
+        return links_styled
+        
+   
     
