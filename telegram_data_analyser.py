@@ -92,47 +92,47 @@ class DataAnalyzer:
 
         plt.show()
         
-        def analyze_channels_stats(self, df):
-            """Analyze statistics of channels from a DataFrame."""
-            # Group data by 'channel_title' and aggregate the number of posts and total views
-            channel_summary = df.groupby('channel_title').agg(
-                number_of_posts=pd.NamedAgg(column='id', aggfunc='count'), 
-                total_views=pd.NamedAgg(column='views', aggfunc='sum')
-                ).reset_index()
+    def analyze_channels_stats(self, df):
+        """Analyze statistics of channels from a DataFrame."""
+        # Group data by 'channel_title' and aggregate the number of posts and total views
+        channel_summary = df.groupby('channel_title').agg(
+            number_of_posts=pd.NamedAgg(column='id', aggfunc='count'), 
+            total_views=pd.NamedAgg(column='views', aggfunc='sum')
+            ).reset_index()
 
-            # Convert 'total_views' to integers for clean formatting
-            channel_summary['total_views'] = channel_summary['total_views'].astype(int)
+        # Convert 'total_views' to integers for clean formatting
+        channel_summary['total_views'] = channel_summary['total_views'].astype(int)
 
-            # Rename the columns for clarity and better understanding
-            channel_summary_renamed = channel_summary.rename(columns={
-                'channel_title': 'Channel',
-                'number_of_posts': 'Posts',
-                'total_views': 'Views'
-            })
+        # Rename the columns for clarity and better understanding
+        channel_summary_renamed = channel_summary.rename(columns={
+            'channel_title': 'Channel',
+            'number_of_posts': 'Posts',
+            'total_views': 'Views'
+        })
 
-            # Return the summary table instead of printing it
-            return channel_summary_renamed
+        # Return the summary table instead of printing it
+        return channel_summary_renamed
         
-        @staticmethod
-        def extract_hashtags(s):
-            """Static method to extract hashtags from a string."""
-            if isinstance(s, str):
-                return re.findall(r'#\w+', s)  # Use regex to find all hashtags in the string
-            else:
-                return []  # Return an empty list if not a string
+    @staticmethod
+    def extract_hashtags(s):
+        """Static method to extract hashtags from a string."""
+        if isinstance(s, str):
+            return re.findall(r'#\w+', s)  # Use regex to find all hashtags in the string
+        else:
+            return []  # Return an empty list if not a string
         
-        def count_hashtags(self, df, text_column='text'):
-            """Method to count hashtags in a DataFrame column."""
-            if text_column not in df.columns:
-                raise KeyError(f"The column '{text_column}' does not exist in the DataFrame.")
-            
-            # Apply the static method to extract hashtags and expand the resulting list
-            hashtags_series = df[text_column].apply(self.extract_hashtags).explode()
+    def count_hashtags(self, df, text_column='text'):
+        """Method to count hashtags in a DataFrame column."""
+        if text_column not in df.columns:
+            raise KeyError(f"The column '{text_column}' does not exist in the DataFrame.")
+        
+        # Apply the static method to extract hashtags and expand the resulting list
+        hashtags_series = df[text_column].apply(self.extract_hashtags).explode()
 
-            # Count the frequency of each hashtag
-            hashtags_count = hashtags_series.value_counts().reset_index()
-            hashtags_count.columns = ['Hashtag', 'Posts']
+        # Count the frequency of each hashtag
+        hashtags_count = hashtags_series.value_counts().reset_index()
+        hashtags_count.columns = ['Hashtag', 'Posts']
 
-            # Return the resulting DataFrame
-            return hashtags_count
+        # Return the resulting DataFrame
+        return hashtags_count
     
