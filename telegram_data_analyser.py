@@ -177,8 +177,10 @@ class DataAnalyzer:
         plt.show()
         
     def extract_links(self, text):
-        # Substitua este método pelo seu próprio método de extração de links.
-        # Este é um placeholder que encontra todas as ocorrências de URLs.
+        """Extract URLs from a text string. Ensure text is a string and not NaN."""
+        if pd.isna(text):
+            return []  # Retorna uma lista vazia para valores NaN
+        text = str(text)  # Garante que o texto seja uma string
         return re.findall(r'http[s]?://\S+', text)
 
     def extract_domain_and_sub(self, url):
