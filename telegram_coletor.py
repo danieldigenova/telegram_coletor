@@ -48,7 +48,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
     try:
       with open(filename + '.json', 'w+') as json_file:
           async with TelegramClient(name, api_id, api_hash) as client:
-              for canal in tqdm(canais, desc ="Progresso da coleta: "):
+              for canal in tqdm(canais, desc = "Coletando mensagens do canal " + canal):
                   # Verifica se o canal existe
                   try:
                     messages = await client.get_messages(canal, limit=limite, offset_date = data_f)
