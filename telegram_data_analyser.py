@@ -133,6 +133,7 @@ class DataAnalyzer:
         
         # Apply the static method to extract hashtags and expand the resulting list
         hashtags_series = df[text_column].apply(self.extract_hashtags).explode()
+        print(hashtags_series)
 
         # Count the frequency of each hashtag
         hashtags_count = hashtags_series.value_counts().reset_index()
