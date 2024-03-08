@@ -207,6 +207,7 @@ class DataAnalyzer:
         domain_counts = main_domains_series.value_counts().reset_index()
         domain_counts.columns = ['Domain', 'Posts']
         domain_counts = domain_counts[domain_counts['Domain'] != '']
+        
         return domain_counts
     
     def count_links_and_make_clickable(self, df, text_column):
@@ -217,7 +218,87 @@ class DataAnalyzer:
 
         # Apply formatting to make links clickable
         links_styled = links_count.style.format({'Link': lambda x: f'<a href="{x}">{x}</a>'})
-        return links_styled
         
+        return links_styled
+    
+    def messages_with_most_views(self, df):
+        # Filters the DataFrame to only include rows where the number of views is greater than 0
+        df_filtered = df[df['views'] > 0]
+        
+        if df_filtered.empty:
+            print("A tabela está vazia porque não houve visualizações.")
+            return df_filtered  # Returns the empty DataFrame and the message has already been displayed
+        
+        # Extracts the necessary columns from the filtered DataFrame
+        necessary_columns = ['channel_title', 'date', 'text', 'views', ]
+        df_summary = df_filtered[necessary_columns].copy()
+        
+        # Renames the columns
+        df_summary.rename(columns={'channel_title': 'Canal', 
+                                'views': 'Visualizações',
+                                'text': 'Mensagem',
+                                'date': 'Data'
+                                }, 
+                        inplace=True)
+        
+        # Sorts the DataFrame in descending order of views
+        df_summary.sort_values(by='Total Views', ascending=False, inplace=True)
+        
+        return df_summary
+        
+    def create_summary_table_with_forwards(df):
+        # Filters the DataFrame to only include rows where the number of forwards is greater than 0
+        df_filtered = df[df['forwards'] > 0]
+        
+        if df_filtered.empty:
+            print("A tabela está vazia porque não houve encaminhamentos.")
+            return df_filtered  # Returns the empty DataFrame and the message has already been displayed
+        
+        # Extracts the necessary columns from the filtered DataFrame
+        necessary_columns = ['channel_title', 'date', 'text', 'forwards']
+        df_summary = df_filtered[necessary_columns].copy()
+        
+        # Renames the 'forwards' column to 'Total Forwards'
+        df_summary.rename(columns={'forwards': 'Encaminhamentos', 
+                                'channel_title': 'Canal',
+                                'text': 'Mensagem',
+                                'date': 'Data'
+                                }, 
+                        inplace=True)
+        
+        return df_summary
+    
+    def most_commented_messages(df):
+        # Ensures 'replies' is treated as numeric, if not already.
+        df['replies'] = pd.to_numeric(df['replies'], errors='coerce')
+        
+        # Filters to include only messages with comments (replies > 0)
+        df_filtered = df[df['replies'] > 0]
+        
+        # Sorts messages by the number of comments in descending order
+        df_sorted = df_filtered.sort_values(by='replies', ascending=False)
+        
+        # Selects the columns of interest
+        necessary_columns = ['channel_title', 'channel_username', 'text', 'replies']
+        df_summary = df_sorted[necessary_columns].copy()
+        
+        # Adds the columns 'user_username' and 'channel_username_chat' with default pd.NA values
+        df_summary['user_username'] = pd.NA
+        df_summary['channel_username_chat'] = pd.NA
+        
+        # Renames the 'replies' column to 'Comentários'
+        df_summary.rename(columns={'replies': 'Comentários', 
+                        'channel_title': 'Canal',
+                        'text': 'Mensagem',
+                        'date': 'Data'
+                        }, 
+                inplace=True)
+        
+        # Checks if the resulting DataFrame is empty
+        if df_summary.empty:
+            print("A tabela está vazia porque não foi coletada nenhuma resposta.")
+            return df_summary  # You can choose to return here or outside the if
+        
+        return df_summary
    
     
