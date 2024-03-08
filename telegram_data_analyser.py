@@ -242,11 +242,11 @@ class DataAnalyzer:
                         inplace=True)
         
         # Sorts the DataFrame in descending order of views
-        df_summary.sort_values(by='Total Views', ascending=False, inplace=True)
+        df_summary.sort_values(by='Visualizações', ascending=False, inplace=True)
         
         return df_summary
         
-    def create_summary_table_with_forwards(df):
+    def create_summary_table_with_forwards(self, df):
         # Filters the DataFrame to only include rows where the number of forwards is greater than 0
         df_filtered = df[df['forwards'] > 0]
         
@@ -266,9 +266,12 @@ class DataAnalyzer:
                                 }, 
                         inplace=True)
         
+        # Sorts the DataFrame in descending order of fowards
+        df_summary.sort_values(by='Encaminhamentos', ascending=False, inplace=True)
+        
         return df_summary
     
-    def most_commented_messages(df):
+    def most_commented_messages(self, df):
         # Ensures 'replies' is treated as numeric, if not already.
         df['replies'] = pd.to_numeric(df['replies'], errors='coerce')
         
@@ -279,12 +282,8 @@ class DataAnalyzer:
         df_sorted = df_filtered.sort_values(by='replies', ascending=False)
         
         # Selects the columns of interest
-        necessary_columns = ['channel_title', 'channel_username', 'text', 'replies']
+        necessary_columns = ['channel_title', 'text', 'replies']
         df_summary = df_sorted[necessary_columns].copy()
-        
-        # Adds the columns 'user_username' and 'channel_username_chat' with default pd.NA values
-        df_summary['user_username'] = pd.NA
-        df_summary['channel_username_chat'] = pd.NA
         
         # Renames the 'replies' column to 'Comentários'
         df_summary.rename(columns={'replies': 'Comentários', 
