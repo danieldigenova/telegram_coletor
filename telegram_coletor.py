@@ -24,7 +24,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
     try:
         data_i = datetime.datetime.strptime(data_inicio, '%d/%m/%y').replace(tzinfo=tz)
     except ValueError:
-        print("Erro: Formato de data de início inválido, o formato deve seguir o padrão dd-mm-yy")
+        print("Erro: Formato de data de início inválido, o formato deve seguir o padrão dd/mm/yy")
         return;
 
     # verifica se a data final está no formato correto
@@ -32,7 +32,7 @@ async def coletar(name, api_id, api_hash, filename, termos, canais, limite, data
         data_f = datetime.datetime.strptime(data_fim, '%d/%m/%y').replace(tzinfo=tz)
         data_f = data_f.replace(hour=23, minute=59)
     except ValueError:
-        print("Erro: Formato de data final inválido, o formato deve seguir o padrão dd-mm-yy")
+        print("Erro: Formato de data final inválido, o formato deve seguir o padrão dd/mm/yy")
         return;
 
     # verifica se a lista de canais é uma lista de strings
