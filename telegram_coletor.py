@@ -1,3 +1,4 @@
+import os
 from telethon.sync import TelegramClient                          # Permite a comunicação síncrona com a API do Telegram.
 from telethon.tl.functions.channels import GetFullChannelRequest  # Permite a coleta de informações do canal
 from telethon.errors import ApiIdInvalidError                     # Biblioteca para tratamento de erros de autenticação
