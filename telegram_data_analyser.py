@@ -198,6 +198,9 @@ class DataAnalyzer:
         if any(shortener in full_domain for shortener in self.link_shorteners):
             combined = "encurtador de link"
 
+        if domain == "t" and extracted.suffix == "me":
+            combined = "telegram"
+
         return combined
 
     def count_domain_frequency(self, df, text_column):
