@@ -58,10 +58,12 @@ class DataAnalyzer:
         # Grouping according to the determined frequency
         grouped = df.groupby(pd.Grouper(key='date', freq=freq)).size().reset_index(name='counts')
 
-        # Convert dates to numeric for regression, if necessary
-        grouped['date_num'] = mdates.date2num(grouped['date'])
+        # Separate the date and time
+        grouped['time'] = grouped['date'].dt.time
+        grouped['date_only'] = grouped['date'].dt.date
 
-        # Linear regression
+        # Linear regression (on dates)
+        grouped['date_num'] = mdates.date2num(grouped['date'])
         z = np.polyfit(grouped['date_num'], grouped['counts'], 1)
         p = np.poly1d(z)
 
@@ -73,21 +75,11 @@ class DataAnalyzer:
         # Formatting the graph
         plt.title('Postagens por Período')
         plt.xlabel('Data')
-        plt.ylabel('Horas')
+        plt.ylabel('Número de Postagens')
         plt.legend()
         plt.grid(True)
 
-        # Adjustments on the y-axis for hours with 3-hour intervals
-        if freq == 'H':
-            locator_y = mdates.HourLocator(interval=3)
-            formatter_y = mdates.DateFormatter('%H:%M')
-        else:
-            locator_y = plt.MaxNLocator(integer=True)
-
-        plt.gca().yaxis.set_major_locator(locator_y)
-        plt.gca().yaxis.set_major_formatter(formatter_y)
-
-        # Adjustments on the x-axis according to the period
+        # Adjustments on the x-axis for dates
         if freq == 'H' or freq == 'D':
             formatter_x = mdates.DateFormatter('%d %b')
             locator_x = mdates.DayLocator()
@@ -103,9 +95,17 @@ class DataAnalyzer:
 
         plt.gca().xaxis.set_major_formatter(formatter_x)
         plt.gca().xaxis.set_major_locator(locator_x)
+
+        # Adjustments on the y-axis for hours with 3-hour intervals
+        locator_y = mdates.HourLocator(interval=3)
+        formatter_y = mdates.DateFormatter('%H:%M')
+        plt.gca().yaxis.set_major_locator(locator_y)
+        plt.gca().yaxis.set_major_formatter(formatter_y)
+
         plt.gcf().autofmt_xdate(rotation=45, ha='right')
 
         plt.show()
+        
         
     def analyze_channels_stats(self, df):
         """Analyze statistics of channels from a DataFrame."""
