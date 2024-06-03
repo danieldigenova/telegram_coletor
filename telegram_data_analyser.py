@@ -73,30 +73,37 @@ class DataAnalyzer:
         # Formatting the graph
         plt.title('Postagens por Período')
         plt.xlabel('Data')
-        plt.ylabel('Número de Postagens')
+        plt.ylabel('Horas')
         plt.legend()
         plt.grid(True)
 
-        # Adjustments on the x-axis according to the period
+        # Adjustments on the y-axis for hours with 3-hour intervals
         if freq == 'H':
-            formatter = mdates.DateFormatter('%H:%M\n%d %b')
-            locator = mdates.HourLocator()
-        elif freq == 'D':
-            formatter = mdates.DateFormatter('%d %b')
-            locator = mdates.DayLocator()
-        elif freq == 'W':
-            formatter = mdates.DateFormatter('%d %b')
-            locator = mdates.WeekdayLocator()
-        elif freq == 'M':
-            formatter = mdates.DateFormatter('%b %Y')
-            locator = mdates.MonthLocator()
+            locator_y = mdates.HourLocator(interval=3)
+            formatter_y = mdates.DateFormatter('%H:%M')
         else:
-            formatter = mdates.DateFormatter('%Y')
-            locator = mdates.YearLocator()
+            locator_y = plt.MaxNLocator(integer=True)
 
-        plt.gca().xaxis.set_major_formatter(formatter)
-        plt.gca().xaxis.set_major_locator(locator)
-        plt.gcf().autofmt_xdate()
+        plt.gca().yaxis.set_major_locator(locator_y)
+        plt.gca().yaxis.set_major_formatter(formatter_y)
+
+        # Adjustments on the x-axis according to the period
+        if freq == 'H' or freq == 'D':
+            formatter_x = mdates.DateFormatter('%d %b')
+            locator_x = mdates.DayLocator()
+        elif freq == 'W':
+            formatter_x = mdates.DateFormatter('%d %b')
+            locator_x = mdates.WeekdayLocator()
+        elif freq == 'M':
+            formatter_x = mdates.DateFormatter('%b %Y')
+            locator_x = mdates.MonthLocator()
+        else:
+            formatter_x = mdates.DateFormatter('%Y')
+            locator_x = mdates.YearLocator()
+
+        plt.gca().xaxis.set_major_formatter(formatter_x)
+        plt.gca().xaxis.set_major_locator(locator_x)
+        plt.gcf().autofmt_xdate(rotation=45, ha='right')
 
         plt.show()
         
@@ -197,7 +204,7 @@ class DataAnalyzer:
         if domain == "youtube" or (domain == "youtu" and extracted.suffix == "be"):
             combined = "youtube"
 
-        if domain == "twitter" or (domain == "x" and extracted.suffix == "com"):
+        if (domain == "twitter" and extracted.suffix == "com") or (domain == "x" and extracted.suffix == "com"):
             combined = "twitter"
 
         full_domain = f"{combined}.{extracted.suffix}" if extracted.suffix else combined
