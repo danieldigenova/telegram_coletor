@@ -58,54 +58,56 @@ class DataAnalyzer:
         # Grouping according to the determined frequency
         grouped = df.groupby(pd.Grouper(key='date', freq=freq)).size().reset_index(name='counts')
 
-        # Separate the date and time
-        grouped['time'] = grouped['date'].dt.time
-        grouped['date_only'] = grouped['date'].dt.date
-
-        # Linear regression (on dates)
+        # Convert dates to numeric for regression, if necessary
         grouped['date_num'] = mdates.date2num(grouped['date'])
+
+        # Linear regression
         z = np.polyfit(grouped['date_num'], grouped['counts'], 1)
         p = np.poly1d(z)
 
         # Plotting
-        plt.figure(figsize=(14, 7))
-        plt.plot(grouped['date'], grouped['counts'], label='Menções', marker='o', linestyle='-', color='skyblue')
-        plt.plot(grouped['date'], p(grouped['date_num']), label='Linha de Tendência', color='red', linestyle='--')
+        fig, ax = plt.subplots(figsize=(14, 7))
+        ax.plot(grouped['date'], grouped['counts'], label='Postagens', marker='o', linestyle='-', color='skyblue')
+        ax.plot(grouped['date'], p(grouped['date_num']), label='Linha de Tendência', color='red', linestyle='--')
 
         # Formatting the graph
         plt.title('Postagens por Período')
-        plt.xlabel('Data')
+        plt.xlabel('Data e Hora' if delta.days < 3 else 'Data')
         plt.ylabel('Número de Postagens')
         plt.legend()
-        plt.grid(True)
+        plt.grid(True, which='both', axis='x')
 
-        # Adjustments on the x-axis for dates
-        if freq == 'H' or freq == 'D':
-            formatter_x = mdates.DateFormatter('%d %b')
-            locator_x = mdates.DayLocator()
-        elif freq == 'W':
-            formatter_x = mdates.DateFormatter('%d %b')
-            locator_x = mdates.WeekdayLocator()
-        elif freq == 'M':
-            formatter_x = mdates.DateFormatter('%b %Y')
-            locator_x = mdates.MonthLocator()
+        # Adjustments on the x-axis for dates and hours
+        if delta.days < 3:
+            major_locator_x = mdates.DayLocator()
+            major_formatter_x = mdates.DateFormatter('%d %b')
+            minor_locator_x = mdates.HourLocator(interval=4)
+            minor_formatter_x = mdates.DateFormatter('%H:%M')
         else:
-            formatter_x = mdates.DateFormatter('%Y')
-            locator_x = mdates.YearLocator()
+            major_locator_x = mdates.DayLocator()
+            major_formatter_x = mdates.DateFormatter('%d %b')
+            minor_locator_x = None
+            minor_formatter_x = None
 
-        plt.gca().xaxis.set_major_formatter(formatter_x)
-        plt.gca().xaxis.set_major_locator(locator_x)
+        ax.xaxis.set_major_locator(major_locator_x)
+        ax.xaxis.set_major_formatter(major_formatter_x)
 
-        # Adjustments on the y-axis for hours with 3-hour intervals
-        locator_y = mdates.HourLocator(interval=3)
-        formatter_y = mdates.DateFormatter('%H:%M')
-        plt.gca().yaxis.set_major_locator(locator_y)
-        plt.gca().yaxis.set_major_formatter(formatter_y)
+        if minor_locator_x and minor_formatter_x:
+            ax.xaxis.set_minor_locator(minor_locator_x)
+            ax.xaxis.set_minor_formatter(minor_formatter_x)
+            ax.tick_params(axis='x', which='major', length=10, width=2)
+            ax.tick_params(axis='x', which='minor', length=5, width=1)
+        else:
+            ax.tick_params(axis='x', which='major', length=10, width=2)
 
         plt.gcf().autofmt_xdate(rotation=45, ha='right')
 
+        # Configure y-axis to show only integer counts
+        ax.set_yticks(np.arange(0, grouped['counts'].max() + 10, 10))
+        ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
         plt.show()
-        
+
         
     def analyze_channels_stats(self, df):
         """Analyze statistics of channels from a DataFrame."""
