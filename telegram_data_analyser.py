@@ -43,7 +43,7 @@ class DataAnalyzer:
 
         # Define grouping according to the period
         if delta.days < 7:
-            freq = 'D'
+            freq = 'H'
         elif delta.days == 7:
             freq = 'D'
         elif delta.days <= 15:
@@ -67,18 +67,21 @@ class DataAnalyzer:
 
         # Plotting
         plt.figure(figsize=(14, 7))
-        plt.plot(grouped['date'], grouped['counts'], label='Mentions', marker='o', linestyle='-', color='skyblue')
-        plt.plot(grouped['date'], p(grouped['date_num']), label='Trend Line', color='red', linestyle='--')
+        plt.plot(grouped['date'], grouped['counts'], label='Menções', marker='o', linestyle='-', color='skyblue')
+        plt.plot(grouped['date'], p(grouped['date_num']), label='Linha de Tendência', color='red', linestyle='--')
 
         # Formatting the graph
-        plt.title('Posts by Period')
-        plt.xlabel('Date')
-        plt.ylabel('Number of mentions')
+        plt.title('Postagens por Período')
+        plt.xlabel('Data')
+        plt.ylabel('Número de Menções')
         plt.legend()
         plt.grid(True)
 
         # Adjustments on the x-axis according to the period
-        if freq == 'D':
+        if freq == 'H':
+            formatter = mdates.DateFormatter('%H:%M\n%d %b')
+            locator = mdates.HourLocator()
+        elif freq == 'D':
             formatter = mdates.DateFormatter('%d %b')
             locator = mdates.DayLocator()
         elif freq == 'W':
