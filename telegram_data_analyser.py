@@ -73,7 +73,7 @@ class DataAnalyzer:
         # Formatting the graph
         plt.title('Postagens por Período')
         plt.xlabel('Data')
-        plt.ylabel('Número de Menções')
+        plt.ylabel('Número de Postagens')
         plt.legend()
         plt.grid(True)
 
@@ -196,6 +196,9 @@ class DataAnalyzer:
 
         if domain == "youtube" or (domain == "youtu" and extracted.suffix == "be"):
             combined = "youtube"
+
+        if domain == "twitter" or (domain == "x" and extracted.suffix == "com"):
+            combined = "twitter"
 
         full_domain = f"{combined}.{extracted.suffix}" if extracted.suffix else combined
         if any(shortener in full_domain for shortener in self.link_shorteners):
