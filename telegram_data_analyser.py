@@ -17,6 +17,7 @@ from wordcloud import WordCloud  # Word cloud generation
 from nltk.stem import WordNetLemmatizer  # Word lemmatization
 from nltk import bigrams  # Bigrams generation
 from sklearn.feature_extraction.text import TfidfVectorizer  # TF-IDF feature matrix
+from datetime import timedelta
 
 # Necessary NLTK downloads
 nltk.download('stopwords')
@@ -33,13 +34,12 @@ class DataAnalyzer:
             "bitly.com", "rebrand.ly", "cutt.ly", "shorte.st",
             "tiny.cc", "is.gd", "soo.gd", "s2r.co", "clicky.me", "budurl.com"
         ]
-
     def analyze_time_series(self, df):
         # Converting 'date' column to datetime
         df['date'] = pd.to_datetime(df['date'])
 
         # Determine the collection period
-        delta = df['date'].max() - df['date'].min()
+        delta = df['date'].max() - df['date'].min() - timedelta(days=1)
 
         # Define grouping according to the period
         if delta.days < 7:
@@ -55,10 +55,11 @@ class DataAnalyzer:
         else:
             freq = 'A'
 
+        freq = 'D'
         # Grouping according to the determined frequency
         grouped = df.groupby(pd.Grouper(key='date', freq=freq)).size().reset_index(name='counts')
 
-        # Convert dates to numeric for regression, if necessary
+        # Convert dates to numeric for regression
         grouped['date_num'] = mdates.date2num(grouped['date'])
 
         # Linear regression
@@ -68,7 +69,10 @@ class DataAnalyzer:
         # Plotting
         fig, ax = plt.subplots(figsize=(14, 7))
         ax.plot(grouped['date'], grouped['counts'], label='Postagens', marker='o', linestyle='-', color='skyblue')
-        ax.plot(grouped['date'], p(grouped['date_num']), label='Linha de Tendência', color='red', linestyle='--')
+        #ax.plot(grouped['date'], p(grouped['date_num']), label='Linha de Tendência', color='red', linestyle='--')
+
+        # Ensure the plot starts at the minimum date and ends at the maximum date
+        ax.set_xlim([df['date'].min(), df['date'].max()])
 
         # Formatting the graph
         plt.title('Postagens por Período')
