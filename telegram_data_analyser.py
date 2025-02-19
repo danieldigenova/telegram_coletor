@@ -398,7 +398,7 @@ class DataAnalyzer:
             "Link": lambda x: f'<a href="{x}" target="_blank">{x}</a>' if pd.notna(x) and x != "" else ""
         })
         
-        from IPython.display import display, HTML
-        display(HTML(df_styled.to_html(escape=False)))
+        #from IPython.display import display, HTML
+        #display(HTML(df_styled.to_html(escape=False)))
         
         return df_merged 
