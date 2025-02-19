@@ -383,7 +383,7 @@ class DataAnalyzer:
             .agg({"Link": "first"})
         )
         
-        df_merged = pd.merge(df_merged, df_links, on=["Canal", "Mensagem"], how="left")
+        #df_merged = pd.merge(df_merged, df_links, on=["Canal", "Mensagem"], how="left")
         
         df_merged.sort_values(
             by=["Visualizações", "Encaminhamentos", "Comentários"], 
