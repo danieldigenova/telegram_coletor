@@ -131,7 +131,7 @@ class DataAnalyzer:
         plt.ylabel('Mensagens')
         plt.legend()
     
-        # Grid mais discreto (linhas claras, tracejadas, finas e semitransparentes)
+        # Grid (linhas claras, tracejadas, finas e semitransparentes)
         ax.grid(True, which='both', axis='both',
                 color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
     
@@ -203,19 +203,19 @@ class DataAnalyzer:
 
     def generate_bigrams(self, df: pd.DataFrame, text_column: str) -> None:
         """
-        Gera bigramas a partir de uma coluna de texto e exibe uma nuvem de palavras em tons de cinza.
+        Gera bigramas a partir de uma coluna de texto e exibe uma nuvem de palavras com fundo escuro.
         """
         df = df.copy()
         df['bigrams'] = df[text_column].apply(self.preprocess_text)
         all_bigrams = ' '.join(df['bigrams'].tolist())
         bigram_frequency = Counter(all_bigrams.split())
     
-        # Adicionando colormap='gray' para gerar a nuvem em tons de cinza
+        # Exemplo usando fundo preto e a paleta "inferno"
         wordcloud = WordCloud(
             width=800, 
             height=400, 
-            background_color='white', 
-            colormap='Blues'
+            background_color='white',  
+            colormap='winter'         
         ).generate_from_frequencies(bigram_frequency)
     
         plt.figure(figsize=(15, 10))
@@ -342,63 +342,65 @@ class DataAnalyzer:
         }, inplace=True)
         df_summary.sort_values(by='Comentários', ascending=False, inplace=True)
         return df_summary
-
+    
     def combined_summary_table(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Retorna uma tabela única combinando as mensagens com visualizações, 
-        encaminhamentos e comentários, e depois adiciona a coluna de link.
+        Retorna um único DataFrame com as colunas renomeadas para:
+        [Canal, Data, Mensagem, Visualizações, Encaminhamentos, Comentários, Link].
+        
+        Preenche valores nulos por 0 nas métricas, ordena as linhas pela soma das
+        métricas (em ordem decrescente) e reposiciona a coluna 'Link' para o final.
         """
-        df_views = self.messages_with_most_views(df)
-        df_forwards = self.create_summary_table_with_forwards(df)
-        df_comments = self.most_commented_messages(df)
-        
-        df_merged = pd.merge(df_views, df_forwards, on=["Canal", "Data", "Mensagem"], how="outer")
-        df_merged = pd.merge(df_merged, df_comments, on=["Canal", "Data", "Mensagem"], how="outer")
-        
-        for col in ["Visualizações", "Encaminhamentos", "Comentários"]:
-            if col in df_merged.columns:
-                df_merged[col] = df_merged[col].fillna(0).astype(int)
-        
-        df_merged = (
-            df_merged
-            .groupby(["Canal", "Mensagem"], as_index=False)
-            .agg({
-                "Data": "first",            
-                "Visualizações": "max",    
-                "Encaminhamentos": "max",
-                "Comentários": "max"
-            })
-        )
     
-        df_links = df[["channel_title", "text", "msg_link"]].copy()
-        df_links.rename(columns={
-            "channel_title": "Canal",
-            "text": "Mensagem",
-            "msg_link": "Link"
-        }, inplace=True)
-        
-        df_links = (
-            df_links
-            .groupby(["Canal", "Mensagem"], as_index=False)
-            .agg({"Link": "first"})
-        )
-        
-        #df_merged = pd.merge(df_merged, df_links, on=["Canal", "Mensagem"], how="left")
-        
-        df_merged.sort_values(
-            by=["Visualizações", "Encaminhamentos", "Comentários"], 
-            ascending=False,
-            inplace=True
-        )
-        
-        cols = [col for col in df_merged.columns if col != "Link"] + ["Link"]
-        df_merged = df_merged[cols]
-        
-        df_styled = df_merged.style.format({
-            "Link": lambda x: f'<a href="{x}" target="_blank">{x}</a>' if pd.notna(x) and x != "" else ""
-        })
-        
-        #from IPython.display import display, HTML
-        #display(HTML(df_styled.to_html(escape=False)))
-        
-        return df_merged 
+        # Copia o df para não alterar o original
+        df = df.copy()
+    
+        # Converte 'replies' para numérico se existir; caso contrário, cria a coluna
+        if 'replies' in df.columns:
+            df['replies'] = pd.to_numeric(df['replies'], errors='coerce').fillna(0)
+        else:
+            df['replies'] = 0
+    
+        # Mapeia os nomes das colunas para os nomes desejados
+        rename_map = {
+            'channel_title': 'Canal',
+            'date': 'Data',
+            'text': 'Mensagem',
+            'views': 'Visualizações',
+            'forwards': 'Encaminhamentos',
+            'replies': 'Comentários',
+            'msg_link': 'Link'
+        }
+        # Remove chaves que não existem no df
+        for old_col in list(rename_map.keys()):
+            if old_col not in df.columns:
+                rename_map.pop(old_col)
+    
+        df.rename(columns=rename_map, inplace=True)
+    
+        # Preenche valores faltantes com 0 nas métricas
+        for col in ['Visualizações', 'Encaminhamentos', 'Comentários']:
+            if col in df.columns:
+                df[col] = df[col].fillna(0).astype(int)
+    
+        # (Opcional) Ordena as linhas com base na soma das métricas
+        df['Total'] = 0
+        for col in ['Visualizações', 'Encaminhamentos', 'Comentários']:
+            if col in df.columns:
+                df['Total'] += df[col]
+        df.sort_values(by='Total', ascending=False, inplace=True)
+        df.drop(columns='Total', inplace=True)
+    
+        # Reordena as colunas para que a coluna "Link" fique sempre no final
+        if 'Link' in df.columns:
+            cols = [col for col in df.columns if col != 'Link'] + ['Link']
+            df = df[cols]
+
+        desired_cols = ["Canal", "Data", "Mensagem", "Visualizações", "Encaminhamentos", "Comentários", "Link"]
+        existing_cols = [col for col in desired_cols if col in df.columns]
+        df = df[existing_cols]
+
+        return df
+
+
+
