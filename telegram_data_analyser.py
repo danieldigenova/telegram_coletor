@@ -214,8 +214,8 @@ class DataAnalyzer:
         wordcloud = WordCloud(
             width=800, 
             height=400, 
-            background_color='white',  
-            colormap='winter'         
+            background_color='black',  
+            colormap='PRGn'         
         ).generate_from_frequencies(bigram_frequency)
     
         plt.figure(figsize=(15, 10))
