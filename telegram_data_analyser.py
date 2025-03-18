@@ -215,7 +215,7 @@ class DataAnalyzer:
             width=800, 
             height=400, 
             background_color='white',  
-            colormap='PRGn'         
+            colormap='brg_r'         
         ).generate_from_frequencies(bigram_frequency)
     
         plt.figure(figsize=(15, 10))
